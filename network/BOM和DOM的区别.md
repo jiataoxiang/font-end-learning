@@ -60,7 +60,3 @@ BOM部分：（核心是window，而window对象又具有双重角色，它既�
 * navigator对象
 * screen对象
 
-
-
-
-
