@@ -934,5 +934,192 @@ Use Chrome or Firefox for development because those browser have the best develo
 
 * Global object provides variables and functions that are available anywhere
 
-* 
+* Function object:
+
+  * function has name property
+
+    ```javascript
+    function sayHi() {
+      alert("Hi");
+    }
+    
+    alert(sayHi.name); // sayHi
+    ```
+
+  * length property: return number of parameters
+
+* Decorators and forwarding:
+
+  * ```javascript
+    function slow(x) {
+      // there can be a heavy CPU-intensive job here
+      alert(`Called with ${x}`);
+      return x;
+    }
+    
+    function cachingDecorator(func) {
+      let cache = new Map();
+    
+      return function(x) {
+        if (cache.has(x)) {    // if there's such key in cache
+          return cache.get(x); // read the result from it
+        }
+    
+        let result = func(x);  // otherwise call func
+    
+        cache.set(x, result);  // and cache (remember) the result
+        return result;
+      };
+    }
+    ```
+
+  * Use decorator for caching
+
+    * The idea is that we can call `cachingDecorator` for any function, and it will return the caching wrapper. That’s great, because we can have many functions that could use such a feature, and all we need to do is to apply `cachingDecorator` to them.
+    * The `cachingDecorator` is reusable. We can apply it to another function.
+    * The caching logic is separate, it did not increase the complexity of `slow` itself (if there was any).
+    * We can combine multiple decorators if needed (other decorators will follow).
+
+  * Borrowing method
+
+    * ```javascript
+      function hash() {
+        alert( arguments.join() ); // Error: arguments.join is not a function
+      }
+      
+      hash(1, 2);
+      
+      function hash() {
+        alert( [].join.call(arguments) ); // 1,2
+      }
+      
+      hash(1, 2);
+      ```
+
+  * Arrow function can't run with `new`.
+
+## Object properties configuration:
+
+* property flags: writable, enumerable, configurable
+
+* Object.getOwnPropertyDescriptor(obj, propertyName)
+
+* non-writable: can't change property, non-enumerable: can't loop through, non-configurable: can't delete(It is one-way road, we cannot change it back with defineProperty)
+
+* getter and setter
+
+  ```javascript
+  let user = {
+    name: "John",
+    surname: "Smith",
+  
+    get fullName() {
+      return `${this.name} ${this.surname}`;
+    }
+    set fullName(value) {
+      [this.name, this.surname] = value.split(" ");
+    }
+  };
+  
+  alert(user.fullName); // John Smith
+  // set fullName is executed with the given value.
+  user.fullName = "Alice Cooper";
+  
+  alert(user.name); // Alice
+  alert(user.surname); // Cooper
+  ```
+
+## Prototypes, inheritance:
+
+* ```javascript
+  let animal = {
+    eats: true
+  };
+  let rabbit = {
+    jumps: true
+  };
+  
+  rabbit.__proto__ = animal;
+  ```
+
+* borrowing from prototype:
+
+  ```javascript
+  let obj = {
+    0: "Hello",
+    1: "world!",
+    length: 2,
+  };
+  
+  obj.join = Array.prototype.join;
+  
+  alert( obj.join(',') ); // Hello,world!
+  ```
+
+* Changing a prototype “on-the-fly” with `Object.setPrototypeOf` or `obj.__proto__=` is a very slow operation as it breaks internal optimizations for object property access operations. 
+
+
+
+## Classes：
+
+* Syntax
+
+  ```javascript
+  class MyClass {
+      constructor() {
+          
+      }
+      method1() {}
+      method2() {}
+      method3() {}
+  }
+  ```
+
+* Must be called with `new`, and class methods are non-enumerable, always use strict
+
+* We can also assign a method to the class function itself, not to its `"prototype"`. Such methods are called *static*.
+
+* mixins
+
+  ```javascript
+  // mixin
+  let sayHiMixin = {
+    sayHi() {
+      alert(`Hello ${this.name}`);
+    },
+    sayBye() {
+      alert(`Bye ${this.name}`);
+    }
+  };
+  
+  // usage:
+  class User {
+    constructor(name) {
+      this.name = name;
+    }
+  }
+  
+  // copy the methods
+  Object.assign(User.prototype, sayHiMixin);
+  
+  // now User can say hi
+  new User("Dude").sayHi(); // Hello Dude!
+  ```
+
+
+
+## TRY CATCH:
+
+ * `try..catch` **works synchronously**
+
+ * For all built-in errors, the error object has two main properties: name, message
+
+ * <script>   
+       window.onerror = function(message, url, line, col, error) {     			alert(`${message}\n At ${line}:${col} of ${url}`);   
+   	};    
+       function readData() {     
+           badFunc(); // Whoops, something went wrong!   
+       }    
+       readData(); 
+   </script>
 
